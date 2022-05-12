@@ -1,4 +1,4 @@
-import React, { Component, useState, useEffect } from "react";
+import React, { Component } from "react";
 import Form from 'react-bootstrap/Form'
 import Container from 'react-bootstrap/Container'
 import Button from 'react-bootstrap/Button';
@@ -6,7 +6,7 @@ import axios from 'axios';
 import './tabledata.css';
 import Header from './Header'
 import Footer from './Footer'
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { IconContext } from "react-icons";
 import { IoIosArrowDown} from "react-icons/io";
 
@@ -24,6 +24,8 @@ class EditUser extends Component {
   
 constructor(props) {
   super(props)
+  this.onChangeEventLevel = this.onChangeEventLevel.bind(this);
+  this.onChangeEventDetachment = this.onChangeEventDetachment.bind(this);
   this.onChangeEventFirstname = this.onChangeEventFirstname.bind(this);
   this.onChangeEventLastname = this.onChangeEventLastname.bind(this);
   this.onChangeEventEmail = this.onChangeEventEmail.bind(this);
@@ -31,35 +33,54 @@ constructor(props) {
   this.onChangeEventRole = this.onChangeEventRole.bind(this);
   this.onSubmit = this.onSubmit.bind(this);
   
-
-// State
- this.state = {
-  firstname: '',
-  lastname:'',
-  email:'',
-  password: '',
-  role: '',
-  id: this.props.params.id
+  // State
+  this.state = {
+    firstname: '',
+    lastname:'',
+    email:'',
+    password: '',
+    role: '',
+    detachment: '',
+    level: [],
+    originalemail: '',
+    id: this.props.params.id
+   }
   
-  }
  }
- 
+
  componentDidMount() {    
-  axios.get('https://kgtrainingserver.herokuapp.com/users/'+ this.props.params.id)
- .then(res => {
+  axios.post('https://kgtrainingserver.herokuapp.com/users/showfiltered', { "filters": { "email": this.props.emailID } })
+ .then((res) => {
+
+  // original email is added for when we send back modified data, if the email address is
+  // modified we need to know the original email to get the original data back in the
+  // server side api.
   this.setState({
-  firstname: res.data.firstname,
-  lastname: res.data.lastname,
-  email: res.data.email,
-  password: res.data.password,
-  role: res.data.role
-     });
-     console.log(res)  
+    firstname: res.data[0].firstname,
+    lastname: res.data[0].lastname,
+    email: res.data[0].email,
+    password: res.data[0].password,
+    detachment: res.data[0].detachment,
+    role: res.data[0].role,
+    level: res.data[0].level,
+    originalemail: res.data[0].email
+  });
+     
   })
 .catch((error) => {
    console.log(error);
    })
  }
+
+ 
+onChangeEventDetachment(e) {
+  this.setState({ detachment: e.target.value })
+}
+
+onChangeEventLevel(e) {
+  this.setState({ level: Array.from(e.currentTarget.selectedOptions, (v) => v.value) })
+}
+
 onChangeEventFirstname(e) {
 this.setState({ firstname: e.target.value })
  }
@@ -78,28 +99,49 @@ onChangeEventEmail(e) {
  }
 onSubmit(e) {
  e.preventDefault()
-  const eventObject = {
+
+  // setup the user object to save back to the mongo db collection,
+  // requires the original email despite not being an actual field in
+  // the collection. This field is required because of the possibility
+  // of changing the email, the email is set to be unique and is used
+  // as an identifier instead of objectID.
+  const userObject = {
+  detachment: this.state.detachment,
   firstname: this.state.firstname,
   lastname: this.state.lastname,
   email: this.state.email,
   password:this.state.password,
-  role: this.state.role
+  role: this.state.role,
+  level: this.state.level,
+  originalemail: this.state.originalemail
   };
 
- axios.put('https://kgtrainingserver.herokuapp.com/users/update-event/' + this.props.params.id, eventObject)
+ // Update the user using modify function in api
+ axios.post('https://kgtrainingserver.herokuapp.com/users/modify', userObject)
  .then((res) => {
-   console.log("id", this.props.params.id)
+   console.log("email", this.props.emailID)
    console.log(res.data)
     console.log('Events successfully updated')
     }).catch((error) => {
      console.log(error)
    })
    // Redirect to Event List 
-   alert("Event updated successfully !")
-  this.props.history.push('/')  
+   alert("User updated successfully !")
+   // now redirect user back to /role page (user list)
+   this.props.navigate("/role");
  }
  
-render() {      
+detachmentOptions() {
+
+    return this.props.detachments.map((detachment) => (      
+        <option>{detachment.description}</option>
+    ))
+
+}
+
+render() {     
+  console.log("k1", this.state);
+
    return (
      <>
      <div>
@@ -121,8 +163,8 @@ render() {
          <Form.Control className="text" type="text" value={this.state.firstname} onChange={this.onChangeEventFirstname} />
        </Form.Group>
       <Form.Group className="text1" controlId="Lastname">
-       <Form.Label>Surname</Form.Label>
-      <Form.Control  className="text" type="text" value={this.state.lastname} onChange={this.onChangeEventLastname} />
+        <Form.Label>Surname</Form.Label>
+        <Form.Control  className="text" type="text" value={this.state.lastname} onChange={this.onChangeEventLastname} />
       </Form.Group>
       <Form.Group className="text1" controlId="Email">
         <Form.Label>Email</Form.Label>
@@ -131,6 +173,23 @@ render() {
       <Form.Group className="text1" controlId="Password">
         <Form.Label>Password</Form.Label>
         <Form.Control  className="text" type="text" value={this.state.password} onChange={this.onChangeEventPassword} />
+      </Form.Group>
+      <Form.Group className="text1" controlId="Detachment">
+        <Form.Label>Detachment</Form.Label>
+        <Form.Control as="select" value={this.state.detachment} onChange={this.onChangeEventDetachment}>
+           {this.detachmentOptions()}
+        </Form.Control>        
+      </Form.Group>
+      <Form.Group className="text1" controlId="Level">
+        <Form.Label>Level</Form.Label>
+        <Form.Control as="select" value={this.state.level} onChange={this.onChangeEventLevel} multiple={true}>
+           <option value="All">All</option>
+           <option value="Basic">Basic</option>
+           <option value="One">One</option>
+           <option value="Two">Two</option>
+           <option value="Three">Three</option>
+           <option value="Four">Four</option>           
+        </Form.Control>        
       </Form.Group>
       <Form.Group className="text1" controlId="Role">
         <Form.Label>Role</Form.Label>
