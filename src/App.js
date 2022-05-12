@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css'
 import Signup from "./components/Singup";
@@ -12,10 +12,7 @@ import CommanderLessons from './components/commander'
 import EditSesion from './components/edit-session'
 import TrainingRole from './components/role-training.component'
 import EditUser from './components/user-edit.component';
-
-
-
-
+import axios from 'axios';
 
 const App = () => {
   const user = localStorage.getItem("token");
@@ -23,12 +20,23 @@ const App = () => {
   console.log("role:", userrole)	
   const str = userrole || '';
   const [editEmailID, cEditEmailID] = useState("");
+  const [detachments, cDetachments] = useState([]);
+
+  // added to allow us to navigate back from other pages cleanly
+  const navigate = useNavigate();
 
   function handleEditClick(emailID) {
     cEditEmailID(emailID);
   }
-
   
+  useEffect(() => {
+      axios.post('https://kgtrainingserver.herokuapp.com/config/showfiltered', { "filters": { "configid": "detachment" } }) 
+      .then((res) => {
+        cDetachments(res.data);
+        console.log("detachmentsapp", detachments)
+      });
+  }, []);
+
   return (
   <>
   <div className="App"> 
@@ -59,7 +67,7 @@ const App = () => {
            redirectPath="/"
             isAllowed={!!user && str?.includes('0')}
         >
-              <TrainingRole />
+              <TrainingRole handleEditClick={ (emailID) => { handleEditClick(emailID) } } navigate={ navigate }/>
          </ProtectedRoute>
        }
       />
@@ -70,7 +78,7 @@ const App = () => {
            redirectPath="/"
             isAllowed={!!user && str?.includes('0')}
         >
-              <EditUser />
+              <EditUser emailID={ editEmailID } detachments={ detachments } navigate={ navigate }/>
          </ProtectedRoute>
        }
       />
