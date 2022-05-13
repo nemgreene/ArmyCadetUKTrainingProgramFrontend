@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 //import { Route, Routes, Link, Navigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -13,7 +14,6 @@ class TrainingSession extends React.Component {
   // Constructor for month training
   constructor(props) {
     super(props);
-
     this.state = {
       currentPage: 1,
       items: [],
@@ -152,3 +152,4 @@ class TrainingSession extends React.Component {
 <Footer />;
 
 export default TrainingSession;
+

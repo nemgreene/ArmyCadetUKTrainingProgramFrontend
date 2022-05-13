@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from "react-router-dom";
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -6,6 +6,7 @@ import './tabledata.css';
 import Footer from './Footer'
 import Header from './Header'
 import greenlogo from '../images/greenlogo.png'
+import axios from 'axios';
 
   
 
@@ -21,6 +22,43 @@ constructor(props) {
     };
 }
 
+deleteUser(emailID) {
+  axios.post("http://kgtrainingserver.herokuapp.com/users/delete", { "email": emailID })
+  .then((resp) => {
+    // the below code effectively reloads the page using react-router-dom,
+    // doing this to reload the page data.    
+    this.props.navigate(0);
+  })
+}
+
+levelToStars(levelsArray) {
+  //&#9733; << the code for the solid star icon from iso 8559?
+  // todo: need to remove the last comma from the string/array...
+  return levelsArray.map((level) => {
+    switch(level) {      
+      case "One":
+        return (
+          <span>(One)&#9733;,&nbsp;</span>
+        );        
+      case "Two":
+        return (
+          <span>(Two)&#9733;&#9733;,&nbsp;</span>
+        );        
+      case "Three":
+        return (
+          <span>(Three)&#9733;&#9733;&#9733;,&nbsp;</span> 
+        );      
+      case "Four":
+        return (
+          <span>(Four)&#9733;&#9733;&#9733;&#9733;,&nbsp;</span>
+        );
+      default:
+        return (
+          <span>{level},&nbsp;</span>
+        );
+    }    
+  })
+}
 
 // ComponentDidMount for
 // fetch from db
@@ -73,25 +111,31 @@ pdf.save('print.pdf');
 <br/>      
   <tbody>                
       <tr>
+          <th>Detachment</th>
           <th>First Name</th>
           <th>Last Name</th>
           <th>Email</th>
           <th>Password</th>
           <th>Role</th> 
+          <th>Level</th>
           <th>Controls</th>
       </tr>
       {items.map((item, i) => (
           <tr key={item._id}>
-             <td>{item.firstname}</td>
+            <td>{item.detachment}</td>
+            <td>{item.firstname}</td>
             <td>{item.lastname}</td>
             <td>{item.email}</td>
             <td>{item.password}</td>
             <td>{item.role}</td> 
+            <td>{this.levelToStars(item.level)}</td>
             <td>
               <button className="btn_edit" onMouseEnter={() => { this.props.handleEditClick(item.email); }}>
                 <Link className="btn_edit" to="/modify-user" >Edit</Link>
               </button>
-              <button className='btn_delete'>Delete</button>
+              <button className='btn_delete' onClick={() => this.deleteUser(item.email)}>
+                Delete
+              </button>
             </td>
           </tr>
       ))}
