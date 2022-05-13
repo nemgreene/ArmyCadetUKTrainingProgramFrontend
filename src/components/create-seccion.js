@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import Form from "react-bootstrap/Form";
-//import DatePicker from "react-datepicker";
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 
 import "./tabledata.css";
 import axios from "axios";
@@ -14,29 +17,45 @@ export default class CreateLessons extends Component {
     this.onChangesession = this.onChangesession.bind(this);
     this.onChangelevel = this.onChangelevel.bind(this);
     this.onChangesubject1 = this.onChangesubject1.bind(this);
+
+    this.onChangelesson1 = this.onChangelesson1.bind(this);
+
     this.onChangelesson1tutor = this.onChangelesson1tutor.bind(this);
     this.onChangeequipment = this.onChangeequipment.bind(this);
     this.onChangedress = this.onChangedress.bind(this);
     this.onChangesubject2 = this.onChangesubject2.bind(this);
+
+    this.onChangelesson2 = this.onChangelesson2.bind(this);
+
     this.onChangelesson2tutor = this.onChangelesson2tutor.bind(this);
 
     this.onSubmit = this.onSubmit.bind(this);
     // Setting up state
     this.state = {
-      date: "",
+
+      date: new Date(),
+
       detachment: "",
       session: "",
       level: "",
       subject1: "",
+
+      lesson1: "",
+
       lesson1tutor: "",
       equipment: "",
       dress: "",
       subject2: "",
+
+      lesson2: "",
+      lesson2tutor: "",
+      values: [],
       lesson2tutor: "",
     };
   }
   onChangedate(e) {
     this.setState({ date: e.target.value });
+
   }
   onChangedetachment(e) {
     this.setState({ detachment: e.target.value });
@@ -50,6 +69,10 @@ export default class CreateLessons extends Component {
   onChangesubject1(e) {
     this.setState({ subject1: e.target.value });
   }
+  onChangelesson1(e) {
+    this.setState({ lesson1: e.target.value });
+
+  }
   onChangelesson1tutor(e) {
     this.setState({ lesson1tutor: e.target.value });
   }
@@ -62,6 +85,11 @@ export default class CreateLessons extends Component {
   onChangesubject2(e) {
     this.setState({ subject2: e.target.value });
   }
+
+  onChangelesson2(e) {
+    this.setState({ lesson2: e.target.value });
+  }
+
   onChangelesson2tutor(e) {
     this.setState({ lesson2tutor: e.target.value });
   }
@@ -73,18 +101,19 @@ export default class CreateLessons extends Component {
       session: this.state.session,
       level: this.state.level,
       subject1: this.state.subject1,
+
+      lesson1: this.state.lesson1,
       lesson1tutor: this.state.lesson1tutor,
       equipment: this.state.equipment,
       dress: this.state.dress,
       subject2: this.state.subject2,
+      lesson2: this.state.lesson2,
       lesson2tutor: this.state.lesson2tutor,
     };
-
-    console.log("itemsToWrite",items);
-
     axios
       .post(
-        "http://localhost:3000/schedule/createschedule",
+        "http://kgtrainingserver.herokuapp.com/schedule/createschedule",
+
         items
       )
       .then((res) => console.log(res.data));
@@ -94,12 +123,30 @@ export default class CreateLessons extends Component {
       session: "",
       level: "",
       subject1: "",
+
+      lesson1: "",
+
       lesson1tutor: "",
       equipment: "",
       dress: "",
       subject2: "",
+
+      lesson2: "",
       lesson2tutor: "",
     });
+  }
+
+  componentDidMount() {
+    fetch("https://kgtrainingserver.herokuapp.com/users")
+      .then(function (res) {
+        return res.json();
+      })
+      .then((json) => {
+        this.setState({
+          values: json,
+        });
+      });
+
   }
 
   render() {
@@ -108,13 +155,16 @@ export default class CreateLessons extends Component {
         <div className="form-wrapper">
           <Form onSubmit={this.onSubmit}>
             <div className="formEdit">
-              <Form.Group className="text1" controlId="date">
+
+              <Form.Group className="datepicker" controlId="date">
                 <Form.Label>Date</Form.Label>
-                <Form.Control
+                <DatePicker
                   className="text"
-                  type="text"
-                  value={this.state.date}
+                  selected={this.state.date}
                   onChange={this.onChangedate}
+                  name="date"
+                  dateFormat="dd/MM/yyyy"
+
                 />
               </Form.Group>
               <Form.Group className="text1" controlId="detachment">
@@ -130,7 +180,11 @@ export default class CreateLessons extends Component {
                 <Form.Label>Session</Form.Label>
                 <Form.Select
                   className="text"
+
+                  selected={this.state.session}
+
                   value={this.state.session}
+
                   onChange={this.onChangesession}
                 >
                   <option>Select Session</option>
@@ -140,12 +194,26 @@ export default class CreateLessons extends Component {
               </Form.Group>
               <Form.Group className="text1" controlId="level">
                 <Form.Label>Level</Form.Label>
-                <Form.Control
+
+                <Form.Select
                   className="text"
-                  type="text"
-                  value={this.state.level}
+                  selected={this.state.level}
                   onChange={this.onChangelevel}
-                />
+                >
+                  <option value="Basic">Basic</option>
+                  <option value="One">One</option>
+                  <option value="Two">Two</option>
+                  <option value="Three">Three</option>
+                  <option value="Four">Four</option>
+                </Form.Select>
+// =======
+//                 <Form.Control
+//                   className="text"
+//                   type="text"
+//                   value={this.state.level}
+//                   onChange={this.onChangelevel}
+//                 />
+// >>>>>>> main
               </Form.Group>
             </div>
 
@@ -161,6 +229,17 @@ export default class CreateLessons extends Component {
                   onChange={this.onChangesubject1}
                 />
               </Form.Group>
+
+              <Form.Group className="text1" controlId="lesson1">
+                <Form.Label>Lesson</Form.Label>
+                <Form.Control
+                  className="text"
+                  type="text"
+                  value={this.state.lesson1}
+                  onChange={this.onChangelesson1}
+                />
+              </Form.Group>
+
               <Form.Group className="text1" controlId="lesson1tutor">
                 <Form.Label>Instructor</Form.Label>
                 <Form.Control
@@ -196,18 +275,44 @@ export default class CreateLessons extends Component {
                 <Form.Control
                   className="text"
                   type="text"
-                  value={this.state.subject2}
-                  onChange={this.onChangesubject2}
+
+                  value={this.state.lesson2tutor}
+                  onChange={this.onChangelesson2tutor}
+                />
+              </Form.Group>
+              <Form.Group className="text1" controlId="lesson2">
+                <Form.Label>Lesson</Form.Label>
+                <Form.Control
+                  className="text"
+                  type="text"
+                  value={this.state.lesson2}
+                  onChange={this.onChangelesson2}
+
                 />
               </Form.Group>
               <Form.Group className="text1" controlId="lesson2tutor">
                 <Form.Label>Instructor</Form.Label>
-                <Form.Control
+
+
+                <Form.Select
                   className="text"
-                  type="text"
-                  value={this.state.lesson2tutor}
+                  selected={this.state.lesson2tutor}
                   onChange={this.onChangelesson2tutor}
-                />
+                >
+                  {this.state.values.map((obj) => {
+                    return (
+                      <option value={obj.Instructor}>{obj.firstname}</option>
+                    );
+                  })}
+                </Form.Select>
+// =======
+//                 <Form.Control
+//                   className="text"
+//                   type="text"
+//                   value={this.state.lesson2tutor}
+//                   onChange={this.onChangelesson2tutor}
+//                 />
+// >>>>>>> main
               </Form.Group>
               <Form.Group className="text1" controlId="equipment">
                 <Form.Label>Equipment</Form.Label>
@@ -236,4 +341,6 @@ export default class CreateLessons extends Component {
       </div>
     );
   }
+
 }
+

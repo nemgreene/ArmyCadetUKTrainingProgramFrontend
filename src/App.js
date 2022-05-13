@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css'
 import Signup from "./components/Singup";
 import Login from "./components/Login";
-import ProtectedRoute from './components/ProtectedRoute'
+import ProtectedRoute from "./components/ProtectedRoute";
 import Main from "./components/Main";
 import LessonsTable from './components/lessons-table.component'
 import TrainingTable from './components/training-table.component'
@@ -14,26 +15,38 @@ import TrainingRole from './components/role-training.component'
 import EditUser from './components/user-edit.component';
 import axios from 'axios';
 
+
 const App = () => {
   const user = localStorage.getItem("token");
   const userrole = localStorage.getItem("role");
-  console.log("role:", userrole)	
-  const str = userrole || '';
+  console.log("role:", userrole);
+  const str = userrole || "";
   const [editEmailID, cEditEmailID] = useState("");
-  const [detachments, cDetachments] = useState([]);
+
+  const [editsessionid, cEditsessionid] = useState("");
+
 
   // added to allow us to navigate back from other pages cleanly
   const navigate = useNavigate();
 
+
   function handleEditClick(emailID) {
     cEditEmailID(emailID);
   }
-  
+
+  function handlesessionEditClick(id) {
+    cEditsessionid(id);
+  }
+
   useEffect(() => {
-      axios.post('https://kgtrainingserver.herokuapp.com/config/showfiltered', { "filters": { "configid": "detachment" } }) 
+    axios
+      .post("https://kgtrainingserver.herokuapp.com/config/showfiltered", {
+        filters: { configid: "detachment" },
+      })
       .then((res) => {
         cDetachments(res.data);
-        console.log("detachmentsapp", detachments)
+        console.log("detachmentsapp", detachments);
+
       });
   }, []);
 
@@ -89,7 +102,11 @@ const App = () => {
            redirectPath="/"
             isAllowed={!!user && str?.includes('0')}
         >
-                <CommanderLessons />
+                <CommanderLessons
+                    handleEditClick={(id) => {
+                      handlesessionEditClick(id);
+                    }}
+                  />
          </ProtectedRoute>
        }
       />
@@ -111,14 +128,8 @@ const App = () => {
       </Routes> 
       
       </div>
-           
-  </div>  
-
-      </>
-      
+    </>
   );
- }
+};
 
-export default App
-
-    
+export default App;
